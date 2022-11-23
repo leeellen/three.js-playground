@@ -1,173 +1,81 @@
 import * as THREE from 'three'
 import { WEBGL } from './webgl'
-import './modal'
 
 if (WEBGL.isWebGLAvailable()) {
-  var camera, scene, renderer
-  var plane
-  var mouse,
-    raycaster,
-    isShiftDown = false
+  // SCENE
+  const scene = new THREE.Scene()
 
-  var rollOverMesh, rollOverMaterial
-  var cubeGeo, cubeMaterial
+  // CAMERA
+  const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)
+  camera.position.z = 3
 
-  var objects = []
+  // light
+  const pointLight = new THREE.PointLight('#fff', 1)
+  pointLight.position.set(0, 2, 12)
+  scene.add(pointLight)
 
-  init()
-  render()
+  // RENDERER
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true })
+  renderer.setSize(window.innerWidth, window.innerHeight)
+  document.body.appendChild(renderer.domElement)
 
-  function init() {
-    camera = new THREE.PerspectiveCamera(
-      45,
-      window.innerWidth / window.innerHeight,
-      1,
-      10000
-    )
-    camera.position.set(500, 800, 1300)
-    camera.lookAt(0, 0, 0)
+  // MESH
+  const donut = new THREE.TorusGeometry(0.3, 0.15, 16, 40)
 
-    scene = new THREE.Scene()
-    scene.background = new THREE.Color(0xf0f0f0)
+  const material1 = new THREE.MeshStandardMaterial({ color: '#3AB0FF' })
+  const obj1 = new THREE.Mesh(donut, material1)
+  obj1.position.x = -2
+  scene.add(obj1)
 
-    var rollOverGeo = new THREE.BoxBufferGeometry(50, 50, 50)
-    rollOverMaterial = new THREE.MeshBasicMaterial({
-      color: 0xff0000,
-      opacity: 0.5,
-      transparent: true,
-    })
-    rollOverMesh = new THREE.Mesh(rollOverGeo, rollOverMaterial)
-    scene.add(rollOverMesh)
+  const material2 = new THREE.MeshStandardMaterial({
+    color: '#3AB0FF',
+    // metalness: 0.5,
+    // transparent: true,
+    // opacity: 0.5,
+    // roughness: 0.5,
+  })
+  const obj2 = new THREE.Mesh(donut, material2)
+  obj2.position.x = -1
+  scene.add(obj2)
 
-    cubeGeo = new THREE.BoxBufferGeometry(50, 50, 50)
-    cubeMaterial = new THREE.MeshLambertMaterial({
-      color: 0xfeb74c,
-      map: new THREE.TextureLoader().load('static/textures/square.png'),
-    })
+  const material3 = new THREE.MeshPhysicalMaterial({
+    color: '#3AB0FF',
+    clearcoat: 1,
+  })
+  const obj3 = new THREE.Mesh(donut, material3)
+  scene.add(obj3)
 
-    var gridHelper = new THREE.GridHelper(1000, 20)
-    scene.add(gridHelper)
+  const material4 = new THREE.MeshLambertMaterial({ color: '#3AB0FF' })
+  const obj4 = new THREE.Mesh(donut, material4)
+  obj4.position.x = 1
+  scene.add(obj4)
 
-    raycaster = new THREE.Raycaster()
-    mouse = new THREE.Vector2()
+  const material5 = new THREE.MeshPhongMaterial({ color: '#3AB0FF', shininess: 100, specular: '#3CCF4E' })
+  const obj5 = new THREE.Mesh(donut, material5)
+  obj5.position.x = 2
+  scene.add(obj5)
 
-    var geometry = new THREE.PlaneBufferGeometry(1000, 1000)
-    geometry.rotateX(-Math.PI / 2)
+  function render(time) {
+    time *= 0.001
+    obj1.rotation.y = time
+    obj2.rotation.y = time
+    obj3.rotation.y = time
+    obj4.rotation.y = time
+    obj5.rotation.y = time
 
-    plane = new THREE.Mesh(
-      geometry,
-      new THREE.MeshBasicMaterial({ visible: false })
-    )
-    scene.add(plane)
-
-    objects.push(plane)
-
-    var ambientLight = new THREE.AmbientLight(0x606060)
-    scene.add(ambientLight)
-
-    var directionalLight = new THREE.DirectionalLight(0xffffff)
-    directionalLight.position.set(1, 0.75, 0.5).normalize()
-    scene.add(directionalLight)
-
-    renderer = new THREE.WebGLRenderer({ antialias: true })
-    renderer.setPixelRatio(window.devicePixelRatio)
-    renderer.setSize(window.innerWidth, window.innerHeight)
-    document.body.appendChild(renderer.domElement)
-
-    document.addEventListener('mousemove', onDocumentMouseMove, false)
-    document.addEventListener('mousedown', onDocumentMouseDown, false)
-    document.addEventListener('keydown', onDocumentKeyDown, false)
-    document.addEventListener('keyup', onDocumentKeyUp, false)
-    window.addEventListener('resize', onWindowResize, false)
+    renderer.render(scene, camera)
+    requestAnimationFrame(render)
   }
+  requestAnimationFrame(render)
 
+  // 반응형
   function onWindowResize() {
     camera.aspect = window.innerWidth / window.innerHeight
     camera.updateProjectionMatrix()
-
     renderer.setSize(window.innerWidth, window.innerHeight)
   }
 
-  function onDocumentMouseMove(event) {
-    event.preventDefault()
-
-    mouse.set(
-      (event.clientX / window.innerWidth) * 2 - 1,
-      -(event.clientY / window.innerHeight) * 2 + 1
-    )
-
-    raycaster.setFromCamera(mouse, camera)
-
-    var intersects = raycaster.intersectObjects(objects)
-
-    if (intersects.length > 0) {
-      var intersect = intersects[0]
-
-      rollOverMesh.position.copy(intersect.point).add(intersect.face.normal)
-      rollOverMesh.position
-        .divideScalar(50)
-        .floor()
-        .multiplyScalar(50)
-        .addScalar(25)
-    }
-
-    render()
-  }
-
-  function onDocumentMouseDown(event) {
-    event.preventDefault()
-
-    mouse.set(
-      (event.clientX / window.innerWidth) * 2 - 1,
-      -(event.clientY / window.innerHeight) * 2 + 1
-    )
-
-    raycaster.setFromCamera(mouse, camera)
-
-    var intersects = raycaster.intersectObjects(objects)
-
-    if (intersects.length > 0) {
-      var intersect = intersects[0]
-
-      if (isShiftDown) {
-        if (intersect.object !== plane) {
-          scene.remove(intersect.object)
-
-          objects.splice(objects.indexOf(intersect.object), 1)
-        }
-
-      } else {
-        var voxel = new THREE.Mesh(cubeGeo, cubeMaterial)
-        voxel.position.copy(intersect.point).add(intersect.face.normal)
-        voxel.position.divideScalar(50).floor().multiplyScalar(50).addScalar(25)
-        scene.add(voxel)
-
-        objects.push(voxel)
-      }
-
-      render()
-    }
-  }
-
-  function onDocumentKeyDown(event) {
-    switch (event.keyCode) {
-      case 16:
-        isShiftDown = true
-        break
-    }
-  }
-
-  function onDocumentKeyUp(event) {
-    switch (event.keyCode) {
-      case 16:
-        isShiftDown = false
-        break
-    }
-  }
-
-  function render() {
-    renderer.render(scene, camera)
-  }
+  window.addEventListener('resize', onWindowResize)
 } else {
   var warning = WEBGL.getWebGLErrorMessage()
   document.body.appendChild(warning)
