@@ -14,44 +14,54 @@ if (WEBGL.isWebGLAvailable()) {
   pointLight.position.set(0, 2, 12)
   scene.add(pointLight)
 
+  // Texture
+  const textureLoader = new THREE.TextureLoader()
+  const textureBaseColor = textureLoader.load('../static/textures/stone_basecolor.jpg')
+  const textureNormal = textureLoader.load('../static/textures/stone_normal.jpg')
+  const textureHeight = textureLoader.load('../static/textures/stone_height.png')
+  const textureRoughness = textureLoader.load('../static/textures/stone_roughness.jpg')
+
   // RENDERER
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true })
   renderer.setSize(window.innerWidth, window.innerHeight)
   document.body.appendChild(renderer.domElement)
 
   // MESH
-  const donut = new THREE.TorusGeometry(0.3, 0.15, 16, 40)
+  const sphere = new THREE.SphereGeometry(0.3, 32, 16)
 
-  const material1 = new THREE.MeshStandardMaterial({ color: '#3AB0FF' })
-  const obj1 = new THREE.Mesh(donut, material1)
+  const material1 = new THREE.MeshStandardMaterial({ map: textureBaseColor })
+  const obj1 = new THREE.Mesh(sphere, material1)
   obj1.position.x = -2
   scene.add(obj1)
 
-  const material2 = new THREE.MeshStandardMaterial({
-    color: '#3AB0FF',
-    // metalness: 0.5,
-    // transparent: true,
-    // opacity: 0.5,
-    // roughness: 0.5,
-  })
-  const obj2 = new THREE.Mesh(donut, material2)
+  const material2 = new THREE.MeshStandardMaterial({ map: textureBaseColor, normalMap: textureNormal })
+  const obj2 = new THREE.Mesh(sphere, material2)
   obj2.position.x = -1
   scene.add(obj2)
 
-  const material3 = new THREE.MeshPhysicalMaterial({
-    color: '#3AB0FF',
-    clearcoat: 1,
+  const material3 = new THREE.MeshStandardMaterial({
+    map: textureBaseColor,
+    normalMap: textureNormal,
+    displacementMap: textureHeight,
+    displacementScale: 0.05,
   })
-  const obj3 = new THREE.Mesh(donut, material3)
+  const obj3 = new THREE.Mesh(sphere, material3)
   scene.add(obj3)
 
-  const material4 = new THREE.MeshLambertMaterial({ color: '#3AB0FF' })
-  const obj4 = new THREE.Mesh(donut, material4)
+  const material4 = new THREE.MeshStandardMaterial({
+    map: textureBaseColor,
+    normalMap: textureNormal,
+    displacementMap: textureHeight,
+    displacementScale: 0.05,
+    roughnessMap: textureRoughness,
+    roughness: 0.5,
+  })
+  const obj4 = new THREE.Mesh(sphere, material4)
   obj4.position.x = 1
   scene.add(obj4)
 
-  const material5 = new THREE.MeshPhongMaterial({ color: '#3AB0FF', shininess: 100, specular: '#3CCF4E' })
-  const obj5 = new THREE.Mesh(donut, material5)
+  const material5 = new THREE.MeshStandardMaterial({ map: textureBaseColor })
+  const obj5 = new THREE.Mesh(sphere, material5)
   obj5.position.x = 2
   scene.add(obj5)
 
